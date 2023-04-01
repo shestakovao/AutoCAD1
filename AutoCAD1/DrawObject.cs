@@ -15,6 +15,79 @@ namespace AutoCAD1
 {
     public class DrawObject
     {
+        [CommandMethod("DrawPLine")]
+        public void PLine()
+        {
+            Document doc = Application.DocumentManager.MdiActiveDocument;
+            Database db = doc.Database;
+            Editor edt = doc.Editor;
+
+            using (Transaction trans = db.TransactionManager.StartTransaction())
+                try
+                {
+                    BlockTable bt;
+                    bt = trans.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
+                    BlockTableRecord btr;
+                    btr = trans.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
+
+                    Polyline pLine = new Polyline();
+
+                    for (int i = 0; i < 10; i++)
+                    {
+                        pLine.AddVertexAt(i, new Point2d(i * 10, i * 10), 0, 0, 0);
+                    }
+                    pLine.ColorIndex = 30;
+                    pLine.LineWeight = LineWeight.LineWeight140;
+                    btr.AppendEntity(pLine);
+                    trans.AddNewlyCreatedDBObject(pLine, true);
+                    trans.Commit();
+                }
+                catch (System.Exception ex)
+                {
+                    edt.WriteMessage("Error: " + ex.Message);
+                    trans.Abort();
+                }
+        }
+
+
+
+
+        [CommandMethod("DrawArc")]
+        public void DrawArc()
+        {
+            Document doc = Application.DocumentManager.MdiActiveDocument;
+            Database db = doc.Database;
+            Editor edt = doc.Editor;
+
+            using (Transaction trans = db.TransactionManager.StartTransaction())
+                try
+                {
+                    BlockTable bt;
+                    bt = trans.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
+                    BlockTableRecord btr;
+                    btr = trans.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
+
+                    using (Arc arc = new Arc())
+                    {
+                        arc.Center = new Point3d(250, 250, 0);
+                        arc.Radius = 20;
+                        arc.StartAngle = (double)45/180*Math.PI;//начальный угол в радианах
+                        arc.EndAngle = (double)90/180 * Math.PI;//конечный угол в радианах
+                        arc.LineWeight = LineWeight.LineWeight060;
+                        arc.ColorIndex = 171;
+                        btr.AppendEntity(arc);
+                        trans.AddNewlyCreatedDBObject(arc, true);
+
+                    }
+                    trans.Commit();
+                }
+                catch (System.Exception ex)
+                {
+                    edt.WriteMessage("Error: " + ex.Message);
+                    trans.Abort();
+                }
+        }
+
         [CommandMethod("DrawCircle")]
         public void DrawCircle()
         {
@@ -35,6 +108,7 @@ namespace AutoCAD1
                         circle.Center = new Point3d(150, 150, 0);
                         circle.Radius = 7.5;
                         circle.LineWeight = LineWeight.LineWeight053;
+                        circle.ColorIndex = 91;
                         btr.AppendEntity(circle);
                         trans.AddNewlyCreatedDBObject(circle, true);
 
