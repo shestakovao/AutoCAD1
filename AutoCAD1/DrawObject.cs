@@ -15,8 +15,46 @@ namespace AutoCAD1
 {
     public class DrawObject
     {
+
+        [CommandMethod("CreateLayer")]
+        public void CreateLayer()
+        {
+            Document doc = Application.DocumentManager.MdiActiveDocument;
+            Database db = doc.Database;
+            Editor edt = doc.Editor;
+
+            using (Transaction trans = db.TransactionManager.StartTransaction())
+                try
+                {
+                    LayerTable lt = trans.GetObject(db.LayerTableId, OpenMode.ForRead) as LayerTable;
+                    string layerName = "Координатная сетка";
+                    if (lt.Has(layerName))//поиск есть ли слой с таким именем
+                    {
+                        trans.Abort();
+                    }
+                    else
+                    {
+                        lt.UpgradeOpen();
+                        LayerTableRecord ltr = new LayerTableRecord();
+                        ltr.Name = layerName;
+                        ltr.Color = Autodesk.AutoCAD.Colors.Color.FromColorIndex(Autodesk.AutoCAD.Colors.ColorMethod.ByLayer, 1);
+                        lt.Add(ltr);
+                        trans.AddNewlyCreatedDBObject(ltr, true);
+                        db.Clayer = lt[layerName];//выбор созданого слоя текущим
+                        trans.Commit();
+                    }
+
+
+                }
+                catch (System.Exception ex)
+                {
+                    edt.WriteMessage("Error: " + ex.Message);
+                    trans.Abort();
+                }
+        }
+
         [CommandMethod("DrawPLine")]
-        public void PLine()
+        public void DrawPLine()
         {
             Document doc = Application.DocumentManager.MdiActiveDocument;
             Database db = doc.Database;
@@ -36,8 +74,12 @@ namespace AutoCAD1
                     {
                         pLine.AddVertexAt(i, new Point2d(i * 10, i * 10), 0, 0, 0);
                     }
+
+                    pLine.AddVertexAt(10, new Point2d(100, 0), 0, 0, 0);
+
                     pLine.ColorIndex = 30;
                     pLine.LineWeight = LineWeight.LineWeight140;
+                    pLine.Closed = true;//полилиния замкнуто
                     btr.AppendEntity(pLine);
                     trans.AddNewlyCreatedDBObject(pLine, true);
                     trans.Commit();
@@ -48,9 +90,6 @@ namespace AutoCAD1
                     trans.Abort();
                 }
         }
-
-
-
 
         [CommandMethod("DrawArc")]
         public void DrawArc()
