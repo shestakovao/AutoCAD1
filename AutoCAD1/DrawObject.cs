@@ -37,7 +37,7 @@ namespace AutoCAD1
                         lt.UpgradeOpen();
                         LayerTableRecord ltr = new LayerTableRecord();
                         ltr.Name = layerName;
-                        ltr.Color = Autodesk.AutoCAD.Colors.Color.FromColorIndex(Autodesk.AutoCAD.Colors.ColorMethod.ByLayer, 1);
+                        ltr.Color = Autodesk.AutoCAD.Colors.Color.FromColorIndex(Autodesk.AutoCAD.Colors.ColorMethod.ByLayer, 1);//Задание цвета слоя
                         lt.Add(ltr);
                         trans.AddNewlyCreatedDBObject(ltr, true);
                         db.Clayer = lt[layerName];//выбор созданого слоя текущим
