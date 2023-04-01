@@ -15,6 +15,39 @@ namespace AutoCAD1
 {
     public class DrawObject
     {
+        [CommandMethod("DrawCircle")]
+        public void DrawCircle()
+        {
+            Document doc = Application.DocumentManager.MdiActiveDocument;
+            Database db = doc.Database;
+            Editor edt = doc.Editor;
+
+            using (Transaction trans = db.TransactionManager.StartTransaction())
+                try
+                {
+                    BlockTable bt;
+                    bt = trans.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
+                    BlockTableRecord btr;
+                    btr = trans.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
+
+                    using (Circle circle = new Circle())
+                    {
+                        circle.Center = new Point3d(150, 150, 0);
+                        circle.Radius = 7.5;
+                        circle.LineWeight = LineWeight.LineWeight053;
+                        btr.AppendEntity(circle);
+                        trans.AddNewlyCreatedDBObject(circle, true);
+
+                    }
+                    trans.Commit();
+                }
+                catch (System.Exception ex)
+                {
+                    edt.WriteMessage("Error: " + ex.Message);
+                    trans.Abort();
+                }
+        }
+
         [CommandMethod("DrawMText")]
         public void DrawMText()
         {
