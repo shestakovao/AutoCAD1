@@ -43,6 +43,10 @@ namespace AutoCAD1
                             Point3d tPoint = text.Position;
                             text.AlignmentPoint = tPoint;
                             text.Rotation = text.Rotation + 180 / 180 * Math.PI;
+                            
+
+                            text.ColorIndex = 5;
+                            text.Height = 6;
                         }
                     }
 
