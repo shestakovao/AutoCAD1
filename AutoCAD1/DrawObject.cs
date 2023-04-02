@@ -16,13 +16,54 @@ namespace AutoCAD1
     {
 
 
+        [CommandMethod("SelectAllText")]
+        public void SelectAllText()
+        {
+            Document doc = Application.DocumentManager.MdiActiveDocument;
+            Database db = doc.Database;
+            Editor edt = doc.Editor;
+
+            // начинаем транзакцию
+            using (Transaction tr = db.TransactionManager.StartTransaction())
+                try
+                {
+                    // получаем ссылку на пространство модели (ModelSpace)
+                    BlockTableRecord ms = (BlockTableRecord)tr.GetObject(SymbolUtilityServices.GetBlockModelSpaceId(db), OpenMode.ForWrite);
+
+                    // "пробегаем" по всем объектам в пространстве модели
+                    foreach (ObjectId id in ms)
+                    {
+                        // приводим каждый из них к типу Entity
+                        Entity entity = (Entity)tr.GetObject(id, OpenMode.ForWrite);
+
+
+                        if (entity.GetType() == typeof(DBText))
+                        {
+                            DBText text = (DBText)entity;
+                            Point3d tPoint = text.Position;
+                            text.AlignmentPoint = tPoint;
+                            text.Rotation = text.Rotation + 180 / 180 * Math.PI;
+                        }
+                    }
+
+                    tr.Commit();
+                }
+                catch (System.Exception ex)
+                {
+                    edt.WriteMessage("Error: " + ex.Message);
+                    tr.Abort();
+                }
+        }
+
+
+
         [CommandMethod("CreateFontStyle")]
         public void CreateFontStyle()
         {
             Document doc = Application.DocumentManager.MdiActiveDocument;
             Database db = doc.Database;
             Editor edt = doc.Editor;
-            
+
             using (Transaction trans = db.TransactionManager.StartTransaction())
                 try
                 {
@@ -32,11 +73,11 @@ namespace AutoCAD1
                     if (!newTextStyleTable.Has(fontStyleName))  //проверка если нет текстового стиля с таким именем
                     {
                         newTextStyleTable.UpgradeOpen();
-                        TextStyleTableRecord newTextStyleTableRecord = new TextStyleTableRecord();                        
+                        TextStyleTableRecord newTextStyleTableRecord = new TextStyleTableRecord();
                         //FontDescriptor acFont;// Get the current font settings
                         //acFont = newTextStyleTableRecord.Font;// Get the current font settings
 
-                        FontDescriptor fd = new FontDescriptor("Times New Roman",true, true, 0, 0);
+                        FontDescriptor fd = new FontDescriptor("Times New Roman", true, true, 0, 0);
                         newTextStyleTableRecord.Font = fd;
                         newTextStyleTableRecord.Name = fontStyleName;
                         newTextStyleTable.Add(newTextStyleTableRecord);
@@ -115,7 +156,7 @@ namespace AutoCAD1
                     }
 
                     pLine.AddVertexAt(10, new Point2d(100, 0), 0, 0, 0);
-                    
+
                     pLine.ColorIndex = 30;
                     pLine.LineWeight = LineWeight.LineWeight140;
                     pLine.Closed = true;//полилиния замкнуто
@@ -149,8 +190,8 @@ namespace AutoCAD1
                     {
                         arc.Center = new Point3d(250, 250, 0);
                         arc.Radius = 20;
-                        arc.StartAngle = (double)45/180*Math.PI;//начальный угол в радианах
-                        arc.EndAngle = (double)90/180 * Math.PI;//конечный угол в радианах
+                        arc.StartAngle = (double)45 / 180 * Math.PI;//начальный угол в радианах
+                        arc.EndAngle = (double)90 / 180 * Math.PI;//конечный угол в радианах
                         arc.LineWeight = LineWeight.LineWeight060;
                         arc.ColorIndex = 171;
                         btr.AppendEntity(arc);
@@ -266,7 +307,7 @@ namespace AutoCAD1
                 }
                 catch (System.Exception ex)
                 {
-                    edt.WriteMessage("Error: "+ex.Message);
+                    edt.WriteMessage("Error: " + ex.Message);
                     trans.Abort();
                 }
         }
