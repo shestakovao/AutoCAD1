@@ -8,13 +8,52 @@ using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Runtime;
 using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.EditorInput;
-
-
+using Autodesk.AutoCAD.GraphicsInterface;
 
 namespace AutoCAD1
 {
     public class DrawObject
     {
+
+
+        [CommandMethod("CreateFontStyle")]
+        public void CreateFontStyle()
+        {
+            Document doc = Application.DocumentManager.MdiActiveDocument;
+            Database db = doc.Database;
+            Editor edt = doc.Editor;
+            
+            using (Transaction trans = db.TransactionManager.StartTransaction())
+                try
+                {
+
+                    TextStyleTable newTextStyleTable = trans.GetObject(doc.Database.TextStyleTableId, OpenMode.ForRead) as TextStyleTable;
+                    string fontStyleName = "Изолинии оседаний";
+                    if (!newTextStyleTable.Has(fontStyleName))  //проверка если нет текстового стиля с таким именем
+                    {
+                        newTextStyleTable.UpgradeOpen();
+                        TextStyleTableRecord newTextStyleTableRecord = new TextStyleTableRecord();                        
+                        //FontDescriptor acFont;// Get the current font settings
+                        //acFont = newTextStyleTableRecord.Font;// Get the current font settings
+
+                        FontDescriptor fd = new FontDescriptor("Times New Roman",true, true, 0, 0);
+                        newTextStyleTableRecord.Font = fd;
+                        newTextStyleTableRecord.Name = fontStyleName;
+                        newTextStyleTable.Add(newTextStyleTableRecord);
+                        trans.AddNewlyCreatedDBObject(newTextStyleTableRecord, true);
+                        db.Textstyle = newTextStyleTableRecord.Id;//Выбор вставленого текстового стиля, текущим
+                    }
+
+                    trans.Commit();
+
+                }
+                catch (System.Exception ex)
+                {
+                    edt.WriteMessage("Error: " + ex.Message);
+                    trans.Abort();
+                }
+        }
+
 
         [CommandMethod("CreateLayer")]
         public void CreateLayer()
@@ -68,7 +107,7 @@ namespace AutoCAD1
                     BlockTableRecord btr;
                     btr = trans.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
 
-                    Polyline pLine = new Polyline();
+                    Autodesk.AutoCAD.DatabaseServices.Polyline pLine = new Autodesk.AutoCAD.DatabaseServices.Polyline();
 
                     for (int i = 0; i < 10; i++)
                     {
@@ -76,7 +115,7 @@ namespace AutoCAD1
                     }
 
                     pLine.AddVertexAt(10, new Point2d(100, 0), 0, 0, 0);
-
+                    
                     pLine.ColorIndex = 30;
                     pLine.LineWeight = LineWeight.LineWeight140;
                     pLine.Closed = true;//полилиния замкнуто
@@ -175,9 +214,10 @@ namespace AutoCAD1
                     bt = trans.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
                     BlockTableRecord btr;
                     btr = trans.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
-
+                    string fontStyleName = "Изолинии оседаний";
                     string txt = "AutoCAD111";
                     Point3d insertPoint = new Point3d(200, 200, 0);
+                    TextStyleTable newTextStyleTable = trans.GetObject(doc.Database.TextStyleTableId, OpenMode.ForRead) as TextStyleTable;
 
                     using (MText mText = new MText())
                     {
@@ -185,6 +225,10 @@ namespace AutoCAD1
                         mText.Location = insertPoint; //точка вставки
                         mText.Height = 23; //пользовательская высота
                         mText.TextHeight = 30; //Высота текста
+                        if (newTextStyleTable.Has(fontStyleName))//если есть такой стиль текста то выбираем его
+                        {
+                            mText.TextStyleId = newTextStyleTable[fontStyleName];
+                        }
                         btr.AppendEntity(mText);
                         trans.AddNewlyCreatedDBObject(mText, true);
                     }
