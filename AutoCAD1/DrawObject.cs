@@ -9,6 +9,7 @@ using Autodesk.AutoCAD.Runtime;
 using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.GraphicsInterface;
+using Polyline = Autodesk.AutoCAD.GraphicsInterface.Polyline;
 
 namespace AutoCAD1
 {
@@ -48,6 +49,16 @@ namespace AutoCAD1
                             text.ColorIndex = 5;
                             text.Height = 6;
                         }
+
+
+                        if (entity.GetType() == typeof(Autodesk.AutoCAD.DatabaseServices.Polyline))
+                        {
+                            Autodesk.AutoCAD.DatabaseServices.Polyline pLine = (Autodesk.AutoCAD.DatabaseServices.Polyline)entity;
+                            pLine.LineWeight = LineWeight.LineWeight211;
+                            pLine.ColorIndex = 5;
+                        }
+
+
                     }
 
                     tr.Commit();
